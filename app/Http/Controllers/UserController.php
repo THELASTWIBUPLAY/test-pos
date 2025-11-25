@@ -101,12 +101,12 @@ class UserController extends Controller
         // return view('user', ['user' => $user]);
 
         //attribute changes
-        $user = UserModel::create([
-            'username' => 'manager11',
-            'nama' => 'Manager11',
-            'password' => Hash::make('12345'),
-            'level_id' => 2,
-        ]);
+        // $user = UserModel::create([
+        //     'username' => 'manager11',
+        //     'nama' => 'Manager11',
+        //     'password' => Hash::make('12345'),
+        //     'level_id' => 2,
+        // ]);
 
         // $user->username = 'manager56';
         // $user->isDirty(); // true
@@ -122,14 +122,63 @@ class UserController extends Controller
         // $user->isClean(); // true
         // dd($user->isDirty());
 
-        $user->username = 'manager12';
-        $user->save();
-        $user->wasChanged(); // true
-        $user->wasChanged('username'); // true
-        $user->wasChanged('username', 'level_id'); // true
-        $user->wasChanged('nama'); // true
-        dd($user->wasChanged(['nama', 'username'])); // true
+        // $user->username = 'manager12';
+        // $user->save();
+        // $user->wasChanged(); // true
+        // $user->wasChanged('username'); // true
+        // $user->wasChanged('username', 'level_id'); // true
+        // $user->wasChanged('nama'); // true
+        // dd($user->wasChanged(['nama', 'username'])); // true
 
+        //belongs to
+        $user = UserModel::with('level')->get();
+        return view('user', ['user' => $user]);
+    }
+
+    public function tambah()
+    {
+        return view('user_tambah');
+    }
+
+    public function tambah_simpan(Request $request)
+    {
+        // Validasi input
+        UserModel::create([
+            'username' => $request->username,
+            'nama' => $request->nama,
+            'password' => Hash::make($request->password),
+            'level_id' => $request->level_id
+        ]);
+        return redirect('/user');
+    }
+
+    public function ubah($id)
+    {
+        $user = UserModel::find($id);
+        return view('user_ubah', ['user' => $user]);
+    }
+
+    public function ubah_simpan($id, Request $request)
+    {
+        // Validasi input dan update data
+        $user = UserModel::find($id);
+
+        $user->username = $request->username;
+        $user->nama = $request->nama;
+        $user->password = Hash::make('request->password');
+        $user->level_id = $request->level_id;
+
+        $user->save();
+
+        return redirect('/user');
+    }
+
+    public function hapus($id)
+    {
+        $user = UserModel::find($id);
+        $user->delete();
+
+        return redirect('/user');
     }
 
 }
