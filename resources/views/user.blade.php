@@ -12,17 +12,32 @@
                 <th>ID User</th>
                 <th>Username</th>
                 <th>Nama Pengguna</th>
+                <th>ID Level</th>
             </tr>
         </thead>
         <tbody>
             {{-- Loop untuk menampilkan data dari variabel $user --}}
-            @foreach ($user as $d)
+            {{-- foreach tidak bisa dipakai di retriving single model --}}
+            {{-- @foreach ($user as $d) --}} 
                 <tr>
-                    <td>{{ $d->user_id }}</td>
-                    <td>{{ $d->username }}</td>
-                    <td>{{ $d->nama }}</td>
+                    <td>{{ $user->user_id }}</td>
+                    <td>{{ $user->username }}</td>
+                    <td>{{ $user->nama }}</td>
+                    <td>{{ $user->level_id}}</td>
                 </tr>
-            @endforeach
+            {{-- @endforeach --}}
+        </tbody>
+    </table>
+    <table border="1" cellpadding="2" cellspacing="0">
+        <thead>
+            <tr>
+                {{-- <th>Jumlah Pengguna</th> --}}
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+                    {{-- <td>{{$user}}</td> --}}
+                </tr>
         </tbody>
     </table>
 </body>
