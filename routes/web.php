@@ -16,9 +16,7 @@ use App\Http\Controllers\KategoriController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [WelcomeController::class, 'index']);
 
 // Route baru yang ditambahkan:
 Route::get('/user', [UserController::class, 'index']);
