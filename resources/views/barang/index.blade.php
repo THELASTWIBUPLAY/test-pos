@@ -5,6 +5,7 @@
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('barang/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('barang/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah via AJAX</button>
             </div>
         </div>
         <div class="card-body">
@@ -22,9 +23,6 @@
                         <div class="col-3">
                             <select class="form-control" id="kategori_id" name="kategori_id" required>
                                 <option value="">- Semua Kategori -</option>
-                                @foreach ($kategori as $item)
-                                    <option value="{{ $item->kategori_id }}">{{ $item->kategori_nama }}</option>
-                                @endforeach
                             </select>
                             <small class="form-text text-muted">Kategori Barang</small>
                         </div>
@@ -47,25 +45,28 @@
             </table>
         </div>
     </div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" data-backdrop="static"
+        data-keyboard="false" data-width="75%" aria-hidden="true"></div>
 @endsection
 @push('css')
-    <link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
+
 @endpush
 @push('js')
-    <script src="{{ asset('adminlte/plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+    
     <script>
+        function modalAction(url = '') {
+            $('#myModal').load(url, function() {
+                $('#myModal').modal('show');
+            });
+        }
+        var dataBarang;
         $(document).ready(function() {
-            var dataBarang = $('#table_barang').DataTable({
+            dataBarang = $('#table_barang').DataTable({
                 serverSide: true, // serverSide: true, jika ingin menggunakan server side processing
                 ajax: {
                     "url": "{{ url('barang/list') }}",
                     "dataType": "json",
-                    "type": "POST",
+                    "type": "GET",
                     "data": function(d) {
                         d.kategori_id = $('#kategori_id').val();
                     }
@@ -88,7 +89,7 @@
                 }, {
                     data: "kategori.kategori_nama",
                     className: "",
-                    orderable: false, 
+                    orderable: false,
                     searchable: false
                 }, {
                     data: "harga_beli",
