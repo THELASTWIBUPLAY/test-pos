@@ -88,7 +88,7 @@
                 }, {
                     data: "kategori.kategori_nama",
                     className: "",
-                    orderable: false, // kategori_nama tidak bisa diurutkan secara langsung
+                    orderable: false, 
                     searchable: false
                 }, {
                     data: "harga_beli",
