@@ -95,14 +95,33 @@
 
     <!-- AdminLTE App -->
     <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
+    
     <script>
+        // Setup CSRF untuk Ajax
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-    </script>
-    @stack('js') <!-- digunakan untuk menambahkan custom js dari perintah push('js') pada masing-masing view -->
-</body>
 
+        function logoutConfirm() {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Sesi Anda akan berakhir!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Logout!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('logout-form').submit();
+                }
+            })
+        }
+    </script>
+
+    @stack('js')
+</body>
 </html>

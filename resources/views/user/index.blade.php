@@ -5,7 +5,8 @@
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('user/create') }}">Tambah</a>
-                <button onclick="modalAction('{{ url('user/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah via AJAX</button>
+                <button onclick="modalAction('{{ url('user/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah via
+                    AJAX</button>
             </div>
         </div>
         <div class="card-body">
@@ -35,6 +36,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Avatar</th>
                         <th>Username</th>
                         <th>Nama</th>
                         <th>Level
@@ -78,6 +80,17 @@
                     className: "text-center",
                     orderable: false,
                     searchable: false
+                }, {
+                    data: "avatar",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        if (data) {
+                            return '<img src="{{ asset("storage/photos/") }}/' + data + '" class="img-thumbnail" width="40px">';
+                        }
+                        return '<img src="{{ asset('adminlte/dist/img/user2-160x160.jpg') }}" width="40px" class="img-circle">';
+                    }
                 }, {
                     data: "username",
                     className: "",

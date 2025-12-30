@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -33,11 +36,63 @@ class AuthController extends Controller
         }
         return redirect('login');
     }
+
+    public function register()
+    {
+        return view('auth.register');
+    }
+
+    public function postregister(Request $request)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'level_id' => 'required|integer',
+                'username' => 'required|string|min:3|unique:m_user,username',
+                'nama'     => 'required|string|max:100',
+                'password' => 'required|min:5',
+                'avatar'   => 'nullable|image|mimes:jpeg,png,jpg|max:5120'
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi Gagal',
+                    'msgField' => $validator->errors()
+                ]);
+            }
+
+            $filename = null;
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $filename = time() . '_' . $file->getClientOriginalName();
+
+                // PERBAIKAN DI SINI:
+                // Simpan ke folder 'photos' di dalam disk 'public'
+                // Ini akan masuk ke storage/app/public/photos secara otomatis
+                $file->storeAs('photos', $filename, 'public');
+            }
+
+            UserModel::create([
+                'username' => $request->username,
+                'nama'     => $request->nama,
+                'password' => Hash::make($request->password),
+                'level_id' => $request->level_id,
+                'avatar'   => $filename
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Registrasi Berhasil, silakan login'
+            ]);
+        }
+    }
+
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('login');
+        return redirect('login')->with('status', 'Logout Berhasil');
     }
 }

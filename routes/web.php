@@ -24,6 +24,8 @@ Route::pattern('id', '[0-9]+');
 
 Route::get('login', [AuthController::class, 'login'])->name('login');
 Route::post('login', [AuthController::class, 'postlogin']);
+Route::get('register', [AuthController::class, 'register']);
+Route::post('register', [AuthController::class, 'postregister']);
 Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
 
 Route::middleware(['auth'])->group(function () {
@@ -66,6 +68,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}/confirm_ajax', [BarangController::class, 'confirm_ajax']);
             Route::delete('/{id}/delete_ajax', [BarangController::class, 'delete_ajax']);
             Route::delete('/{id}', [BarangController::class, 'destroy']);
+            Route::get('/import', [BarangController::class, 'import']);
+            Route::post('/import_ajax', [BarangController::class, 'import_ajax']);
+            Route::get('/export_excel', [BarangController::class, 'export_excel']);
+            Route::get('/export_pdf', [BarangController::class, 'export_pdf']);
         });
     });
     // Route baru yang ditambahkan:

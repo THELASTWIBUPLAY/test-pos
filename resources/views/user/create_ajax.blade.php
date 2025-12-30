@@ -1,4 +1,4 @@
-<form action="{{ url('/user/ajax') }}" method="POST" id="form-tambah">
+<form action="{{ url('/user/ajax') }}" method="POST" id="form-tambah" enctype="multipart/form-data">
     @csrf
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -27,14 +27,18 @@
                 <div class="form-group">
                     <label>Nama</label>
                     <input value="" type="text" name="nama" id="nama" class="form-control" required>
-
                     <small id="error-nama" class="error-text form-text text-danger"></small>
                 </div>
+
+                <div class="form-group">
+                    <label>Foto Profil</label>
+                    <input type="file" name="avatar" id="avatar" class="form-control">
+                    <small id="error-avatar" class="error-text form-text text-danger"></small>
+                </div>
+
                 <div class="form-group">
                     <label>Password</label>
-
                     <input value="" type="password" name="password" id="password" class="form-control" required>
-
                     <small id="error-password" class="error-text form-text text-danger"></small>
                 </div>
             </div>
@@ -63,6 +67,10 @@
                     minlength: 3,
                     maxlength: 100
                 },
+                avatar: {
+                    extension: "jpg|jpeg|png",
+                    filesize: 5120
+                },
                 password: {
                     required: true,
                     minlength: 6,
@@ -70,10 +78,13 @@
                 }
             },
             submitHandler: function(form) {
+                var formData = new FormData(form);
                 $.ajax({
                     url: form.action,
                     type: form.method,
-                    data: $(form).serialize(),
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     success: function(response) {
                         if (response.status) {
                             $('#myModal').modal('hide');

@@ -1,56 +1,43 @@
 @empty($user)
-    <div id="modal-master" class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Kesalahan</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-danger">
-                    <h5><i class="icon fas fa-ban"></i> Kesalahan!!!</h5>
-                    Data user yang anda cari tidak ditemukan.
-                </div>
-            </div>
-        </div>
-    </div>
-@else
+    @else
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Detail Data User</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
-                {{-- Tampilkan detail user dalam format tabel --}}
                 <table class="table table-bordered table-striped table-sm">
                     <tr>
-                        <th>ID</th>
-                        <td>{{ $user->user_id }}</td>
+                        <th class="text-right col-3">Foto Profil :</th>
+                        <td class="col-9">
+                            @if($user->avatar)
+                                <img src="{{ asset('storage/photos/' . $user->avatar) }}" class="img-thumbnail" style="width: 150px;">
+                            @else
+                                <img src="{{ asset('adminlte/dist/img/user2-160x160.jpg') }}" class="img-thumbnail" style="width: 150px;">
+                            @endif
+                        </td>
                     </tr>
                     <tr>
-                        <th>Level Pengguna</th>
-                        {{-- Asumsi: Relasi LevelModel di UserModel bernama 'level' --}}
+                        <th class="text-right col-3">ID :</th>
+                        <td class="col-9">{{ $user->user_id }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-right col-3">Level Pengguna :</th>
                         <td>{{ $user->level->level_nama }}</td>
                     </tr>
                     <tr>
-                        <th>Username</th>
+                        <th class="text-right col-3">Username :</th>
                         <td>{{ $user->username }}</td>
                     </tr>
                     <tr>
-                        <th>Nama Lengkap</th>
+                        <th class="text-right col-3">Nama Lengkap :</th>
                         <td>{{ $user->nama }}</td>
                     </tr>
-                    <tr>
-                        <th>Dibuat Pada</th>
-                        <td>{{ $user->created_at }}</td>
-                    </tr>
-                    <tr>
-                        <th>Diperbarui Pada</th>
-                        <td>{{ $user->updated_at }}</td>
-                    </tr>
-                </table>
+                    </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-dismiss="modal" class="btn btn-primary">Tutup</button>
             </div>
         </div>
     </div>

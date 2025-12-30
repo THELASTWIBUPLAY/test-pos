@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Contracts\DataTable;
 
@@ -207,7 +208,8 @@ class UserController extends Controller
 
     public function list(Request $request)
     {
-        $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
+        // Tambahkan 'avatar' ke dalam select
+        $users = UserModel::select('user_id', 'username', 'nama', 'level_id', 'avatar')
             ->with('level');
 
         if ($request->level_id) {
@@ -215,23 +217,14 @@ class UserController extends Controller
         }
 
         return DataTables::of($users)
-            // menambahkan kolom index / no urut (default nama kolom: DT_RowIndex)
             ->addIndexColumn()
-            ->addColumn('aksi', function ($user) { // menambahkan kolom aksi
-                // $btn = '<a href="' . url('/user/' . $user->user_id) . '" class="btn btn-info btn-sm">Detail</a> ';
-                // $btn .= '<a href="' . url('/user/' . $user->user_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                // $btn .= '<form class="d-inline-block" method="POST" action="' .
-                //     url('/user/' . $user->user_id) . '">'
-                //     . csrf_field() . method_field('DELETE') .
-                //     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
-
+            ->addColumn('aksi', function ($user) {
                 $btn = '<button onclick="modalAction(\'' . url('/user/' . $user->user_id . '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
                 $btn .= '<button onclick="modalAction(\'' . url('/user/' . $user->user_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
                 $btn .= '<button onclick="modalAction(\'' . url('/user/' . $user->user_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
-
                 return $btn;
             })
-            ->rawColumns(['aksi']) // memberitahu bahwa kolom aksi adalah html
+            ->rawColumns(['aksi'])
             ->make(true);
     }
 
@@ -372,33 +365,33 @@ class UserController extends Controller
 
     public function store_ajax(Request $request)
     {
-        // Validasi input
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
+                'level_id' => 'required|integer',
                 'username' => 'required|string|min:3|unique:m_user,username',
-                'nama' => 'required|string|max:100',
+                'nama'     => 'required|string|max:100',
                 'password' => 'required|min:6',
-                'level_id' => 'required|integer'
+                'avatar'   => 'nullable|image|mimes:jpeg,png,jpg|max:5120' // Validasi file
             ];
 
-            //use Illuminate\Support\Facades\Validator;
             $validator = Validator::make($request->all(), $rules);
-
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'messages' => 'Validasi Gagal',
-                    'msgFields' => $validator->errors()
-                ]);
+                return response()->json(['status' => false, 'message' => 'Validasi Gagal', 'msgField' => $validator->errors()]);
             }
 
-            UserModel::create($request->all());
-            return response()->json([
-                'status' => true,
-                'messages' => 'Data user berhasil disimpan.'
-            ]);
+            $data = $request->all();
+            $data['password'] = bcrypt($data['password']); // Enkripsi password
+
+            if ($request->hasFile('avatar')) {
+                $file = $request->file('avatar');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs('photos', $filename, 'public');
+                $data['avatar'] = $filename;
+            }
+
+            UserModel::create($data);
+            return response()->json(['status' => true, 'message' => 'Data user berhasil disimpan.']);
         }
-        redirect('/');
     }
 
     public function edit_ajax(string $id)
@@ -414,42 +407,47 @@ class UserController extends Controller
 
     public function update_ajax(Request $request, $id)
     {
-        // cek apakah request dari ajax
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
                 'level_id' => 'required|integer',
                 'username' => 'required|max:20|unique:m_user,username,' . $id . ',user_id',
-                'nama' => 'required|max:100',
-                'password' => 'nullable|min:6|max:20'
+                'nama'     => 'required|max:100',
+                'password' => 'nullable|min:6|max:20',
+                'avatar'   => 'nullable|image|mimes:jpeg,png,jpg|max:5120'
             ];
-            // use Illuminate\Support\Facades\Validator;
+
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {
-                return response()->json([
-                    'status' => false, // respon json, true: berhasil, false: gagal
-                    'message' => 'Validasi gagal.',
-                    'msgField' => $validator->errors() // menunjukkan field mana yang error
-                ]);
+                return response()->json(['status' => false, 'message' => 'Validasi gagal.', 'msgField' => $validator->errors()]);
             }
+
             $check = UserModel::find($id);
             if ($check) {
-                if (!$request->filled('password')) { // jika password tidak diisi, maka hapus dari request
+                $data = $request->all();
 
-                    $request->request->remove('password');
+                if ($request->hasFile('avatar')) {
+                    // Hapus foto lama jika ada
+                    if ($check->avatar && Storage::disk('public')->exists('photos/' . $check->avatar)) {
+                        Storage::disk('public')->delete('photos/' . $check->avatar);
+                    }
+
+                    $file = $request->file('avatar');
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    // Simpan ke storage/app/public/photos
+                    $file->storeAs('photos', $filename, 'public');
+                    $data['avatar'] = $filename;
                 }
-                $check->update($request->all());
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Data berhasil diupdate'
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Data tidak ditemukan'
-                ]);
+
+                if (!$request->filled('password')) {
+                    unset($data['password']);
+                } else {
+                    $data['password'] = bcrypt($data['password']);
+                }
+
+                $check->update($data);
+                return response()->json(['status' => true, 'message' => 'Data berhasil diupdate']);
             }
         }
-        return redirect('/');
     }
 
     public function confirm_ajax(string $id)
@@ -463,23 +461,18 @@ class UserController extends Controller
 
     public function delete_ajax(Request $request, $id)
     {
-        // cek apakah request dari ajax
         if ($request->ajax() || $request->wantsJson()) {
             $user = UserModel::find($id);
             if ($user) {
+                // Gunakan Disk Public untuk hapus agar sesuai dengan cara simpan
+                if ($user->avatar && Storage::disk('public')->exists('photos/' . $user->avatar)) {
+                    Storage::disk('public')->delete('photos/' . $user->avatar);
+                }
                 $user->delete();
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Data user berhasil dihapus.'
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Data user tidak ditemukan.'
-                ]);
+                return response()->json(['status' => true, 'message' => 'Data user berhasil dihapus.']);
             }
+            return response()->json(['status' => false, 'message' => 'Data user tidak ditemukan.']);
         }
-        return redirect('/');
     }
 
     public function show_ajax(string $id)
